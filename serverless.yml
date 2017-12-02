@@ -17,6 +17,7 @@ functions:
     events:
       - http:
           method: POST
+          cors: true
           path: setQuizStatus
           authorizer: arn:aws:lambda:us-east-1:715633473519:function:Auth0JwtAuthorizor:GRAPHACADEMY
 
@@ -27,6 +28,7 @@ functions:
     events:
       - http:
           method: GET
+          cors: true
           path: getQuizStatus
           authorizer: arn:aws:lambda:us-east-1:715633473519:function:Auth0JwtAuthorizor:GRAPHACADEMY
 
