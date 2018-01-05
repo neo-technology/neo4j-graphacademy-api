@@ -1,4 +1,5 @@
 var options = {
+  closable: false,
   theme: {
     logo: 'https://s3.amazonaws.com/dev.assets.neo4j.com/wp-content/uploads/neo4j_logo_globe.png',
     primaryColor: '#58b535'
