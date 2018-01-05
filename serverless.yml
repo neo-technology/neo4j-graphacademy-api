@@ -1,4 +1,4 @@
-service: university-api
+service: graphacademy-api
 
 provider:
   name: aws

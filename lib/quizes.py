@@ -11,30 +11,59 @@ db_driver = GraphDatabase.driver(neo4j_url,  auth=basic_auth(neo4j_user, neo4j_p
 
 def set_quiz_status_db(userId, className, quizStatus): 
   session = db_driver.session()
-  query = """
+  passed_query = """
     MERGE (u:User {auth0_key:{auth0_key}})
     MERGE (c:TrainingClass {name:{class_name}})
     MERGE (u)-[:ENROLLED_IN]->(se:StudentEnrollment)-[:IN_CLASS]->(c)
-    MERGE (se)-[:TOOK_QUIZES]->(cq:ClassQuizes)
-    SET cq.passed={passed},
-        cq.failed={failed}
+    WITH c, se
+    MATCH (c)-[:REQUIRES]->(q:Quiz {name:{passed_quiz}})
+    MERGE (se)-[:PASSED]->(q)
+    WITH se, q
+    MATCH (se)-[f:FAILED]->(q)
+    DELETE f
     """
-  results = session.run(query, parameters={"auth0_key": userId, "class_name": className, "passed": quizStatus["passed"], "failed": quizStatus["failed"]})
-  results.consume()
+  for passed_quiz in quizStatus['passed']:
+    passed_results = session.run(passed_query, parameters={"auth0_key": userId, "class_name": className, "passed_quiz": passed_quiz})
+    passed_results.consume()
+
+  failed_query = """
+    MERGE (u:User {auth0_key:{auth0_key}})
+    MERGE (c:TrainingClass {name:{class_name}})
+    MERGE (u)-[:ENROLLED_IN]->(se:StudentEnrollment)-[:IN_CLASS]->(c)
+    WITH c, se
+    MATCH (c)-[:REQUIRES]->(q:Quiz {name:{passed_quiz}})
+    WHERE NOT EXISTS( (se)-[:PASSED]->(q) )
+    MERGE (se)-[:FAILED]->(q)
+    """
+  for failed_quiz in quizStatus['failed']:
+    failed_results = session.run(failed_query, parameters={"auth0_key": userId, "class_name": className, "failed_quiz": failed_quiz})
+    failed_results.consume()
 
 def get_quiz_status_db(userId, className):
   session = db_driver.session()
   resultDict = {}
-  query = """
+
+  passed_query = """
     MATCH (u:User {auth0_key:{auth0_key}})-[:ENROLLED_IN]-(se:StudentEnrollment)-[:IN_CLASS]->(c:TrainingClass {name:{class_name}}),
-          (se)-[:TOOK_QUIZES]->(cq:ClassQuizes)
-    RETURN cq.passed AS passed, cq.failed AS failed
+          (se)-[p:PASSED]->(q:Quiz)
+    RETURN q.name AS name
     """
-  results = session.run(query, parameters={"auth0_key": userId, "class_name": className})
-  for record in results:
+  passed_results = session.run(passed_query, parameters={"auth0_key": userId, "class_name": className})
+  resultDict['passed'] = []
+  for record in passed_results:
     record = dict((el[0], el[1]) for el in record.items())
-    resultDict['passed'] = record['passed']
-    resultDict['failed'] = record['failed']
+    resultDict['passed'].append(record['name'])
+
+  failed_query = """
+    MATCH (u:User {auth0_key:{auth0_key}})-[:ENROLLED_IN]-(se:StudentEnrollment)-[:IN_CLASS]->(c:TrainingClass {name:{class_name}}),
+          (se)-[p:PASSED]->(q:Quiz)
+    RETURN q.name AS name
+    """
+  failed_results = session.run(failed_query, parameters={"auth0_key": userId, "class_name": className})
+  resultDict['failed'] = []
+  for record in failed_results:
+    record = dict((el[0], el[1]) for el in record.items())
+    resultDict['failed'].append(record['name'])
 
   return resultDict
 
