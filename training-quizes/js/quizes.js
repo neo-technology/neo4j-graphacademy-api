@@ -137,6 +137,8 @@ function updateQuizStatus() {
   return { "passed": passedArray, "failed": failedArray };
 }
 
+ jQuery(document).ready(function () {
+
 webAuth.renewAuth({
       redirectUri: 'https://neo4j.com/graphacademy/auth-iframe/',
       usePostMessage: true,
@@ -166,3 +168,5 @@ webAuth.renewAuth({
         lock.show();
       }
 });
+
+}
