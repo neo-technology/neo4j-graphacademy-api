@@ -137,36 +137,34 @@ function updateQuizStatus() {
   return { "passed": passedArray, "failed": failedArray };
 }
 
- jQuery(document).ready(function () {
-
-webAuth.renewAuth({
-      redirectUri: 'https://neo4j.com/graphacademy/auth-iframe/',
-      usePostMessage: true,
-      postMessageDataType: 'graphacademy-auth',
-      scope: 'openid name email',
-      nonce: btoa(Math.floor((Math.random() * 100000000)) + ":" + Math.round(Date.now() / 10))
-    }, function (error, renewAuthResult) {
-      if (renewAuthResult) {
-        Cookies.set('graphacademy_id_token', renewAuthResult['idToken'], { path: '/graphacademy/' });
-        console.log('renewAuth successful', error, renewAuthResult);
-        getQuizStatusRemote().then( function( value ) { 
-          failed = value['quizStatus']['failed'];
-          passed = value['quizStatus']['passed'];
-          for (i in failed) {
-            quizesStatus[ failed[i] ] = false;
-          }
-          for (i in passed) {
-            quizesStatus[ passed[i] ] = true;
-          }
-          updateQuizStatus();
-          currentQuizStatus = quizesStatus[ $(".quiz").attr("id") ];
-          if (currentQuizStatus) {
-            $(".quiz").hide();
-          }
-        } );
-      } else {
-        lock.show();
-      }
-});
-
+jQuery(document).ready(function () {
+  webAuth.renewAuth({
+        redirectUri: 'https://neo4j.com/graphacademy/auth-iframe/',
+        usePostMessage: true,
+        postMessageDataType: 'graphacademy-auth',
+        scope: 'openid name email',
+        nonce: btoa(Math.floor((Math.random() * 100000000)) + ":" + Math.round(Date.now() / 10))
+      }, function (error, renewAuthResult) {
+        if (renewAuthResult) {
+          Cookies.set('graphacademy_id_token', renewAuthResult['idToken'], { path: '/graphacademy/' });
+          console.log('renewAuth successful', error, renewAuthResult);
+          getQuizStatusRemote().then( function( value ) { 
+            failed = value['quizStatus']['failed'];
+            passed = value['quizStatus']['passed'];
+            for (i in failed) {
+              quizesStatus[ failed[i] ] = false;
+            }
+            for (i in passed) {
+              quizesStatus[ passed[i] ] = true;
+            }
+            updateQuizStatus();
+            currentQuizStatus = quizesStatus[ $(".quiz").attr("id") ];
+            if (currentQuizStatus) {
+              $(".quiz").hide();
+            }
+          } );
+        } else {
+          lock.show();
+        }
+  });
 }
