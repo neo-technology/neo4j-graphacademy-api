@@ -13,8 +13,10 @@ def set_quiz_status_db(userId, className, quizStatus):
   session = db_driver.session()
   passed_query = """
     MERGE (u:User {auth0_key:{auth0_key}})
+    ON CREATE SET u.createdAt=timestamp()
     MERGE (c:TrainingClass {name:{class_name}})
     MERGE (u)-[:ENROLLED_IN]->(se:StudentEnrollment)-[:IN_CLASS]->(c)
+    ON CREATE SET se.createdAt=timestamp()
     WITH c, se
     MATCH (c)-[:REQUIRES]->(q:Quiz {name:{passed_quiz}})
     MERGE (se)-[:PASSED]->(q)
@@ -28,8 +30,10 @@ def set_quiz_status_db(userId, className, quizStatus):
 
   failed_query = """
     MERGE (u:User {auth0_key:{auth0_key}})
+    ON CREATE SET u.createdAt=timestamp()
     MERGE (c:TrainingClass {name:{class_name}})
     MERGE (u)-[:ENROLLED_IN]->(se:StudentEnrollment)-[:IN_CLASS]->(c)
+    ON CREATE SET se.createdAt=timestamp()
     WITH c, se
     MATCH (c)-[:REQUIRES]->(q:Quiz {name:{passed_quiz}})
     WHERE NOT EXISTS( (se)-[:PASSED]->(q) )

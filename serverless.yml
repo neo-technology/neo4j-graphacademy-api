@@ -32,6 +32,29 @@ functions:
           path: getQuizStatus
           authorizer: arn:aws:lambda:us-east-1:715633473519:function:Auth0JwtAuthorizor:GRAPHACADEMY
 
+  log-training-view:
+    name: ${opt:stage}-GraphAcademyLogTrainingView
+    handler: handler.log_training_view
+    role: 'arn:aws:iam::715633473519:role/lambda_graphacademy'
+    events:
+      - http:
+          method: POST
+          cors: true
+          path: logTrainingView
+          authorizer: arn:aws:lambda:us-east-1:715633473519:function:Auth0JwtAuthorizor:GRAPHACADEMY
+
+  set-class-enrollment:
+    name: ${opt:stage}-GraphAcademySetClassEnrollment
+    handler: handler.set_class_enrollment
+    role: 'arn:aws:iam::715633473519:role/lambda_graphacademy'
+    events:
+      - http:
+          method: POST
+          cors: true
+          path: setClassEnrollment
+          authorizer: arn:aws:lambda:us-east-1:715633473519:function:Auth0JwtAuthorizor:GRAPHACADEMY
+
+
 package:
   exclude:
     - node_modules/**

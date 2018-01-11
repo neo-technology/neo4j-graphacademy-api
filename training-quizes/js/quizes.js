@@ -1,39 +1,3 @@
-var options = {
-  closable: false,
-  theme: {
-    logo: 'https://s3.amazonaws.com/dev.assets.neo4j.com/wp-content/uploads/neo4j_logo_globe.png',
-    primaryColor: '#58b535'
-  },
-  initialScreen: (localStorage.getItem('previousLogin') == null)?'signUp':'login',
-  languageDictionary: {
-    title: 'Neo4j',
-    signin: {
-      title: 'Sign in'
-    },
-    signup: {
-      title: 'Sign up'
-    }
-  },
-  auth: {
-    redirectUrl: 'https://neo4j.com/graphacademy/login/?return=' + window.location.href,
-    params: {
-      scope: 'openid name email',
-      responseType: 'token'
-    }
-  }
-}
-
-var lock = new Auth0Lock(
-  'xSEhNfb0vyfF5SnlzGKx5F6LhAB9pabu',
-  'neo4j-sync.auth0.com',
-  options
-);
-
-var webAuth = new auth0.WebAuth({
-  domain: 'neo4j-sync.auth0.com',
-  clientID: 'xSEhNfb0vyfF5SnlzGKx5F6LhAB9pabu'
-});
-
 var quizesStatus = {};
 $(".quiz-progress").find("li").css("cssText", "list-style-image: none !important");
 $(".quiz-progress").find("li i").addClass("fa");
@@ -86,7 +50,7 @@ function postQuizStatus(passed, failed) {
   return $.ajax
   ({
     type: "POST",
-    url: "https://oorxuo7813.execute-api.us-east-1.amazonaws.com/dev/setQuizStatus",
+    url: "https://nmae7t4ami.execute-api.us-east-1.amazonaws.com/prod/setQuizStatus",
     contentType: "application/json",
     dataType: 'json',
     async: true,
@@ -106,7 +70,7 @@ function getQuizStatusRemote() {
   return $.ajax
   ({
     type: "GET",
-    url: "https://oorxuo7813.execute-api.us-east-1.amazonaws.com/dev/getQuizStatus?className=online-training-1",
+    url: "https://nmae7t4ami.execute-api.us-east-1.amazonaws.com/prod/getQuizStatus?className=online-training-1",
     contentType: "application/json",
     dataType: 'json',
     async: true,
@@ -137,34 +101,23 @@ function updateQuizStatus() {
   return { "passed": passedArray, "failed": failedArray };
 }
 
-jQuery(document).ready(function () {
-  webAuth.renewAuth({
-        redirectUri: 'https://neo4j.com/graphacademy/auth-iframe/',
-        usePostMessage: true,
-        postMessageDataType: 'graphacademy-auth',
-        scope: 'openid name email',
-        nonce: btoa(Math.floor((Math.random() * 100000000)) + ":" + Math.round(Date.now() / 10))
-      }, function (error, renewAuthResult) {
-        if (renewAuthResult) {
-          Cookies.set('graphacademy_id_token', renewAuthResult['idToken'], { path: '/graphacademy/' });
-          console.log('renewAuth successful', error, renewAuthResult);
-          getQuizStatusRemote().then( function( value ) { 
-            failed = value['quizStatus']['failed'];
-            passed = value['quizStatus']['passed'];
-            for (i in failed) {
-              quizesStatus[ failed[i] ] = false;
-            }
-            for (i in passed) {
-              quizesStatus[ passed[i] ] = true;
-            }
-            updateQuizStatus();
-            currentQuizStatus = quizesStatus[ $(".quiz").attr("id") ];
-            if (currentQuizStatus) {
-              $(".quiz").hide();
-            }
-          } );
-        } else {
-          lock.show();
-        }
-  });
+function getQuizStatus() {
+  return getQuizStatusRemote().then( function( value ) { 
+    failed = value['quizStatus']['failed'];
+    passed = value['quizStatus']['passed'];
+    for (i in failed) {
+      quizesStatus[ failed[i] ] = false;
+    }
+    for (i in passed) {
+      quizesStatus[ passed[i] ] = true;
+    }
+    updateQuizStatus();
+    currentQuizStatus = quizesStatus[ $(".quiz").attr("id") ];
+    if (currentQuizStatus) {
+      $(".quiz").hide();
+    }
+    return true;
+  }, function() {
+    return false;
+  } );
 }
