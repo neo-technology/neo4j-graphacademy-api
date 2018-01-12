@@ -35,7 +35,7 @@ def set_quiz_status_db(userId, className, quizStatus):
     MERGE (u)-[:ENROLLED_IN]->(se:StudentEnrollment)-[:IN_CLASS]->(c)
     ON CREATE SET se.createdAt=timestamp()
     WITH c, se
-    MATCH (c)-[:REQUIRES]->(q:Quiz {name:{passed_quiz}})
+    MATCH (c)-[:REQUIRES]->(q:Quiz {name:{failed_quiz}})
     WHERE NOT EXISTS( (se)-[:PASSED]->(q) )
     MERGE (se)-[:FAILED]->(q)
     """

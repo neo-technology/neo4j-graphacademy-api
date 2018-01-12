@@ -6,9 +6,15 @@ $(".quiz-progress").find("li i").addClass("fa-circle-thin");
 
 
 $('.next-section').click(function(event) {
-  var quizSuccess = gradeQuiz($(".quiz").first()); // gradeQuiz($( this ).closest(".quiz"));
   var hrefSuccess = event.target.href;
+  var quizSuccess = gradeQuiz($(".quiz").first()); // gradeQuiz($( this ).closest(".quiz"));
   event.preventDefault();
+  if (quizSuccess) {
+    $("#submit-message").remove();
+  } else {
+    $("#_next_section").find(":first").after("<div id='submit-message'><h3 id='submit-message' style='color: red'>Please correct errors in questions above to continue.</h3></div>");
+    $("#submit-message").append("<div class='paragraph'><a href='" + hrefSuccess + "'>Click here</a> if you wish to advance to next section without passing the quiz.</div>")
+  }
   updateResponse = updateQuizStatus();
   postQuizStatus(updateResponse['passed'], updateResponse['failed']).then(
     function() { 
