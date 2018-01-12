@@ -60,7 +60,7 @@ def get_quiz_status_db(userId, className):
 
   failed_query = """
     MATCH (u:User {auth0_key:{auth0_key}})-[:ENROLLED_IN]-(se:StudentEnrollment)-[:IN_CLASS]->(c:TrainingClass {name:{class_name}}),
-          (se)-[p:PASSED]->(q:Quiz)
+          (se)-[p:FAILED]->(q:Quiz)
     RETURN q.name AS name
     """
   failed_results = session.run(failed_query, parameters={"auth0_key": userId, "class_name": className})
