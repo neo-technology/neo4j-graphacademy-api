@@ -52,7 +52,7 @@ function gradeQuiz(theQuiz) {
 };
 
 function postQuizStatus(passed, failed) {
-  id_token = Cookies.get("graphacademy_id_token");
+  var id_token = Cookies.get("com.neo4j.accounts.idToken");
   return $.ajax
   ({
     type: "POST",
@@ -72,7 +72,7 @@ function postQuizStatus(passed, failed) {
 }
 
 function getQuizStatusRemote() {
-  id_token = Cookies.get("graphacademy_id_token");
+  var id_token = Cookies.get("com.neo4j.accounts.idToken");
   return $.ajax
   ({
     type: "GET",
