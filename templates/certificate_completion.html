@@ -1,0 +1,95 @@
+<html>
+<head>
+  <meta charset="UTF-8">
+</head>
+  <style>
+    body {
+      font-size: 1.5em;
+      text-align: center;
+    }
+    h1 {
+      margin: 1.5em;
+      color: #3889BF;
+    }
+    .container {
+      position: fixed;
+      top: 0;
+      left: 0;
+      margin: 0em;
+      border: 5px double;
+      page-break-after: always;
+      page-break-inside: avoid;
+      width: 99%;
+      height: 99%;
+      background: url(data:image/png;base64,{{ base_64_bg_image }});
+      background-size: 115%;
+      background-position: center;
+      background-repeat: no-repeat;
+    }
+    .award {
+      margin: 7em 0 5em 0;
+    }
+    .award .line1 {
+      color: #717172;
+      font-weight: lighter;
+      margin: 0;
+    }
+    .award h2 {
+      margin-top: 0.2em;
+    }
+    .score {
+      margin-bottom: 3em;
+    }
+    .cert-info {
+      font-size: 1.00em;
+      text-align: left;
+      padding-left: 10px;
+    }
+    .date {
+      font-size: 0.8em;
+      text-align: right;
+    }
+    #logo {
+      position: absolute;
+      bottom: 5;
+      right: 5;
+    }
+    #cert {
+      position: absolute;
+      bottom: 5;
+      left: 5;
+    }
+    #sig {
+      position: absolute;
+      bottom: 75;
+      left: 10;
+    }
+    #siginfo {
+      position: absolute;
+      bottom: 0;
+      left: 13;
+      text-align: left;
+      margin-bottom: 0px;
+      padding-bottom: 5px;
+    }
+  </style>
+  <body>
+    <div class="container">
+
+      <h1>Neo4j GraphAcademy: Certificate of Completion</h1>
+      <div class="award">
+        <p class="line1">Presented to:</p>
+        <h2>{{name}}</h2>
+        <p class="cert">Successfully completed the course: <i>{{ course_name }}</i></p>
+      </div>
+      <p class="score">
+        Certificate Number: {{certificate_number}} <br />
+        Date: {{ date }}
+      </p>
+      <p class="cert-info">The certificate holder has successfully completed the Neo4j GraphAcademy course named above.</p>
+      <img id="sig" src="data:image/png;base64, {{ base_64_sig_image }}" width="200" />
+      <p id="siginfo">Emil Eifrem<br />CEO, Neo4j, Inc.</p> 
+      <img id="logo" src="data:image/png;base64, {{ base_64_logo_image }}" width="200" />
+    </div>
+  </body>
+</html>

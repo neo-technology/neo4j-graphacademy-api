@@ -1,24 +1,65 @@
 import os
+import logging
 
 from neo4j.v1 import GraphDatabase, basic_auth
 from encryption import decrypt_value_str
+
+logger = logging.getLogger()
+logger.setLevel(logging.INFO)
 
 neo4j_url = 'bolt://%s' % (decrypt_value_str(os.environ['GRAPHACADEMY_DB_HOST_PORT']))
 neo4j_user = decrypt_value_str(os.environ['GRAPHACADEMY_DB_USER']) 
 neo4j_password = decrypt_value_str(os.environ['GRAPHACADEMY_DB_PW'])
 
-db_driver = GraphDatabase.driver(neo4j_url,  auth=basic_auth(neo4j_user, neo4j_password))
+db_driver = GraphDatabase.driver(neo4j_url,  auth=basic_auth(neo4j_user, neo4j_password),
+  max_retry_time=15,
+  max_connection_lifetime=60)
 
-def set_class_enrollment_db(userId, className): 
+def get_class_enrollment_db(userId, className): 
+  enrolled = False
+  session = db_driver.session()
+  enrollment_query = """
+    MATCH (u:User {auth0_key:{auth0_key}}),
+    (c:TrainingClass {name:{class_name}}),
+    (u)-[:ENROLLED_IN]->(se:StudentEnrollment)-[:IN_CLASS]->(c)
+    RETURN se
+    """
+  res = session.run(enrollment_query, parameters={"auth0_key": userId, "class_name": className})
+  for record in res:
+    enrolled = True 
+
+  return enrolled
+
+def get_set_class_complete(userId, className):
+  session = db_driver.session()
+  enrollment_query = """
+MATCH (u:User {auth0_key:{auth0_key}})-
+     [:ENROLLED_IN]->(se:StudentEnrollment)-[:IN_CLASS]->(c:TrainingClass {name:{class_name}})
+WITH u.fullname AS user_name, c.fullname AS course_name, se.first_name + ' ' + se.last_name AS display_name, se
+MATCH
+  (se)-[p:PASSED]->(q:Quiz)
+WHERE NOT EXISTS
+  ( (se)-[:FAILED]->(:Quiz) )
+WITH
+  display_name, user_name, course_name, MAX(p.passed_date) AS max_passed, se
+MERGE (se)<-[:INDICATES_COMPLETION]-(coc:Certificate)
+ON CREATE SET se.certificate_number=tointeger(round(rand() * 100000000)), se.completed_date=max_passed, coc.issued_at=datetime()
+RETURN se.certificate_number AS cert_number, user_name, display_name, course_name, max_passed.year AS passed_year, max_passed.month AS passed_month, max_passed.day AS passed_day
+  """
+  res = session.run(enrollment_query, parameters={"auth0_key": userId, "class_name": className})
+  for record in res:
+    return record
+
+def set_class_enrollment_db(userId, className, firstName, lastName): 
   session = db_driver.session()
   enrollment_query = """
     MERGE (u:User {auth0_key:{auth0_key}})
     ON CREATE SET u.createdAt=timestamp()
     MERGE (c:TrainingClass {name:{class_name}})
     MERGE (u)-[:ENROLLED_IN]->(se:StudentEnrollment)-[:IN_CLASS]->(c)
-    ON CREATE SET se.createdAt=timestamp()
+    ON CREATE SET se.createdAt=timestamp(), se.first_name={first_name}, se.last_name={last_name}
     """
-  res = session.run(enrollment_query, parameters={"auth0_key": userId, "class_name": className})
+  res = session.run(enrollment_query, parameters={"auth0_key": userId, "class_name": className, "first_name": firstName, "last_name": lastName})
   res.consume()
 
   return True

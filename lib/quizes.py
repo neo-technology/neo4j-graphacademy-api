@@ -1,13 +1,19 @@
 import os
+import logging
 
 from neo4j.v1 import GraphDatabase, basic_auth
 from encryption import decrypt_value_str
+
+logger = logging.getLogger()
+logger.setLevel(logging.INFO)
 
 neo4j_url = 'bolt://%s' % (decrypt_value_str(os.environ['GRAPHACADEMY_DB_HOST_PORT']))
 neo4j_user = decrypt_value_str(os.environ['GRAPHACADEMY_DB_USER']) 
 neo4j_password = decrypt_value_str(os.environ['GRAPHACADEMY_DB_PW'])
 
-db_driver = GraphDatabase.driver(neo4j_url,  auth=basic_auth(neo4j_user, neo4j_password))
+db_driver = GraphDatabase.driver(neo4j_url,  auth=basic_auth(neo4j_user, neo4j_password),
+  max_retry_time=15,
+  max_connection_lifetime=60)
 
 def set_quiz_status_db(userId, className, quizStatus): 
   session = db_driver.session()
@@ -19,7 +25,8 @@ def set_quiz_status_db(userId, className, quizStatus):
     ON CREATE SET se.createdAt=timestamp()
     WITH c, se
     MATCH (c)-[:REQUIRES]->(q:Quiz {name:{passed_quiz}})
-    MERGE (se)-[:PASSED]->(q)
+    MERGE (se)-[pp:PASSED]->(q)
+    ON CREATE SET pp.passed_date=datetime()
     WITH se, q
     MATCH (se)-[f:FAILED]->(q)
     DELETE f
@@ -68,6 +75,21 @@ def get_quiz_status_db(userId, className):
   for record in failed_results:
     record = dict((el[0], el[1]) for el in record.items())
     resultDict['failed'].append(record['name'])
+
+  untried_query = """
+    MATCH (u:User {auth0_key:{auth0_key}})-[:ENROLLED_IN]-(se:StudentEnrollment)-[:IN_CLASS]->(c:TrainingClass {name:{class_name}}), (c)-[:REQUIRES]->(q:Quiz)
+WHERE 
+    NOT EXISTS
+          ( (se)-[:FAILED]->(q) )
+    AND NOT EXISTS
+          ( (se)-[:PASSED]->(q) )
+ RETURN q.name AS name
+    """
+  untried_results = session.run(untried_query, parameters={"auth0_key": userId, "class_name": className})
+  resultDict['untried'] = []
+  for record in untried_results:
+    record = dict((el[0], el[1]) for el in record.items())
+    resultDict['untried'].append(record['name'])
 
   return resultDict
 
