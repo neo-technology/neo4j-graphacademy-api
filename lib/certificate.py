@@ -17,12 +17,12 @@ BUCKET_NAME = "graphacademy.neo4j.com"
 def suffix(d):
     return 'th' if 11 <= d <= 13 else {1: 'st', 2: 'nd', 3: 'rd'}.get(d % 10, 'th')
 
-def generate_certificate(user_id, name, date, cert_number, course_name):
+def generate_certificate(user_id, name, date, cert_number, cert_hash, course_name):
     #t = datetime.datetime.fromtimestamp(event["date"])
     #event["date_formatted"] = t.strftime('%a {S} %b %Y').replace('{S}', str(t.day) + suffix(t.day))
 
     #user_id = event['requestContext']['authorizer']['principalId']
-    cert_hash = hashlib.sha256(str(cert_number).encode("utf-8")).hexdigest()
+    #cert_hash = hashlib.sha256(str(cert_number).encode("utf-8")).hexdigest()
     cert_path = 'training/certificates'
     cert_url = 'https://graphacademy.neo4j.com/%s/%s.pdf' % (cert_path, cert_hash)
    

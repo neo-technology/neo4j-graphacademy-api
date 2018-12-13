@@ -44,10 +44,10 @@ MATCH
 WHERE NOT EXISTS
   ( (se)-[:FAILED]->(:Quiz) )
 WITH
-  display_name, user_name, course_name, MAX(p.passed_date) AS max_passed, se
+  display_name, user_name, course_name, MAX(p.passed_date) AS max_passed, se, tointeger(round(rand() * 100000000)) AS certnum 
 MERGE (se)<-[:INDICATES_COMPLETION]-(coc:Certificate)
-ON CREATE SET se.certificate_number=tointeger(round(rand() * 100000000)), se.completed_date=max_passed, coc.issued_at=datetime()
-RETURN se.certificate_number AS cert_number, user_name, display_name, course_name, max_passed.year AS passed_year, max_passed.month AS passed_month, max_passed.day AS passed_day
+ON CREATE SET coc.certificate_number=certnum, se.completed_date=max_passed, coc.issued_at=datetime(), coc.certificate_hash=apoc.util.sha256([tostring(se.createdAt),tostring(certnum)])
+RETURN coc.certificate_number AS cert_number, coc.certificate_hash AS cert_hash, user_name, display_name, course_name, max_passed.year AS passed_year, max_passed.month AS passed_month, max_passed.day AS passed_day
   """
   res = session.run(enrollment_query, parameters={"auth0_key": userId, "class_name": className})
   for record in res:

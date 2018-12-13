@@ -1,0 +1,8 @@
+Congrats {{display_name}} on Completing GraphAcademy Course: {{course_name}}
+
+$his is a great achievement in your progress learning about graphs and Neo4j!
+
+We'd like to present you with a Certificate of Completion to recognize your accomplishment.
+
+Download here:
+{{cert_url}}

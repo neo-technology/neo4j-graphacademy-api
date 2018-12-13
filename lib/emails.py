@@ -79,6 +79,38 @@ RETURN u.auth0_key AS auth0_key, s.createdAt AS e_c, datetime( {epochMillis: s.c
       send_email('welcome', 'Neo4j GraphAcademy <devrel@neo4j.com>', record['email'], 'Welcome to the GraphAcademy course: %s' % (tmpl_vars['course_name']), tmpl_vars)
       mark_email_sent(record['auth0_key'], record['e_c'], 'welcome_email_sent')
 
+
+def email_congrats_messages():
+    session = db_driver.session()
+
+    # cypher query for email
+    congrats_email_query = """
+MATCH (u:User)-[:ENROLLED_IN]->(s:StudentEnrollment {active:true})-[:IN_CLASS]-(c:TrainingClass),
+(s)<-[:INDICATES_COMPLETION]-(coc:Certificate)
+WHERE EXISTS (c.congrats_email_template)
+AND NOT EXISTS (s.congrats_email_sent)
+AND EXISTS (s.completed_date)
+AND NOT u.email IS NULL
+RETURN u.auth0_key AS auth0_key, s.createdAt AS e_c, datetime( {epochMillis: s.createdAt}) AS enrollment_created_at, c.congrats_email_template AS template, c.fullname AS course_name, coalesce(s.first_name, u.first_name, u.firstName) + ' ' + coalesce(s.last_name, u.last_name, u.lastName) AS display_name, u.email AS email, c.course_url AS course_url, coc.issued_at AS cert_issued_date, coc.certificate_number AS cert_number, coc.certificate_hash AS cert_hash
+"""
+    results = session.run(congrats_email_query)
+    for record in results:
+      # mark_email_queued
+      mark_email_queued(record['auth0_key'], record['e_c'], 'congrats_email_sent')
+      
+      tmpl_vars = {
+        'course_name': record['course_name'],
+        'display_name': record['display_name'],
+        'cert_issued_date': record['cert_issued_date'],
+        'cert_number': record['cert_number'],
+        'cert_hash': record['cert_hash'],
+        'cert_url': 'https://graphacademy.neo4j.com/certificates/%s.pdf' % (record['cert_hash']),
+        'course_url': record['course_url']
+      }
+      send_email('welcome', 'Neo4j GraphAcademy <devrel@neo4j.com>', record['email'], 'Congrats on Completing the GraphAcademy course "%s"' % (tmpl_vars['course_name']), tmpl_vars)
+      mark_email_sent(record['auth0_key'], record['e_c'], 'congrats_email_sent')
+
+
 def send_email(template, from_line, to_address, subject, tmpl_vars):
     client = boto3.client('ses')
 

@@ -23,7 +23,7 @@ def gen_class_certificate(event, context):
       # all quizes passed
       classInfo = get_set_class_complete(userId, className)
 
-      cert = generate_certificate(userId, classInfo['display_name'], '%s-%s-%s' % (classInfo['passed_year'], classInfo['passed_month'], classInfo['passed_day']), classInfo['cert_number'], classInfo['course_name'])
+      cert = generate_certificate(userId, classInfo['display_name'], '%s-%s-%s' % (classInfo['passed_year'], classInfo['passed_month'], classInfo['passed_day']), classInfo['cert_number'], classInfo['cert_hash'], classInfo['course_name'])
 
       body = {
         "message": "certificate generated",
