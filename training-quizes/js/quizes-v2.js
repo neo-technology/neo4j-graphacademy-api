@@ -12,13 +12,14 @@ if (quizesCookie) {
 
 
 $('.next-section').click(function(event) {
+  event.preventDefault();
+
   var hrefSuccess = event.target.href;
   var quizSuccess = gradeQuiz($(".quiz").first()); // gradeQuiz($( this ).closest(".quiz"));
-  event.preventDefault();
   if (quizSuccess) {
     $("#submit-message").remove();
   } else {
-    $("#_next_section").find(":first").after("<div id='submit-message'><h3 id='submit-message' style='color: red'>Please correct errors in questions above to continue.</h3></div>");
+    $(".next-section").before("<div id='submit-message'><p id='submit-message'><span style='color: red'>Please correct errors</span> in quiz responses above to continue.  Questions with incorrect responses are highlighted in <span style='color: red'>red</span>.</p></div>");
     $("#submit-message").append("<div class='paragraph'><a href='" + hrefSuccess + "'>Click here</a> if you wish to advance to next section without passing the quiz.</div>")
   }
   updateResponse = updateQuizStatus();

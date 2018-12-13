@@ -22,6 +22,7 @@ def get_class_enrollment_db(userId, className):
     MATCH (u:User {auth0_key:{auth0_key}}),
     (c:TrainingClass {name:{class_name}}),
     (u)-[:ENROLLED_IN]->(se:StudentEnrollment)-[:IN_CLASS]->(c)
+    WHERE se.active=true
     RETURN se
     """
   res = session.run(enrollment_query, parameters={"auth0_key": userId, "class_name": className})
@@ -35,6 +36,8 @@ def get_set_class_complete(userId, className):
   enrollment_query = """
 MATCH (u:User {auth0_key:{auth0_key}})-
      [:ENROLLED_IN]->(se:StudentEnrollment)-[:IN_CLASS]->(c:TrainingClass {name:{class_name}})
+WHERE
+  se.active=true
 WITH u.fullname AS user_name, c.fullname AS course_name, se.first_name + ' ' + se.last_name AS display_name, se
 MATCH
   (se)-[p:PASSED]->(q:Quiz)
@@ -56,7 +59,7 @@ def set_class_enrollment_db(userId, className, firstName, lastName):
     MERGE (u:User {auth0_key:{auth0_key}})
     ON CREATE SET u.createdAt=timestamp()
     MERGE (c:TrainingClass {name:{class_name}})
-    MERGE (u)-[:ENROLLED_IN]->(se:StudentEnrollment)-[:IN_CLASS]->(c)
+    MERGE (u)-[:ENROLLED_IN]->(se:StudentEnrollment {active: true})-[:IN_CLASS]->(c)
     ON CREATE SET se.createdAt=timestamp(), se.first_name={first_name}, se.last_name={last_name}
     """
   res = session.run(enrollment_query, parameters={"auth0_key": userId, "class_name": className, "first_name": firstName, "last_name": lastName})
@@ -70,7 +73,7 @@ def log_class_part_view_db(userId, className, partName):
     MERGE (u:User {auth0_key:{auth0_key}})
     ON CREATE SET u.createdAt=timestamp()
     MERGE (c:TrainingClass {name:{class_name}})
-    MERGE (u)-[:ENROLLED_IN]->(se:StudentEnrollment)-[:IN_CLASS]->(c)
+    MERGE (u)-[:ENROLLED_IN]->(se:StudentEnrollment {active:true})-[:IN_CLASS]->(c)
     ON CREATE SET se.createdAt=timestamp()
     MERGE (c)-[:INCLUDES]->(p:TrainingPart {name:{part_name}})
     ON CREATE SET p.createdAt=timestamp()

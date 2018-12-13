@@ -1,0 +1,12 @@
+Welcome to your GraphAcademy course: {{course_name}}
+
+
+Welcome {{display_name}},
+
+You're now enrolled in the GraphAcademy course "{{course_name}}." This course should take approximately {{time_est}}, although you have until {{deadline}} to complete the course.  After that, you'll need to re-enroll.
+
+You'll receive a reminder {{reminder_time}} before the end of the course.
+
+Continue the Course: {{course_url}}
+
+Best wishes on your GraphAcademy learning journey!

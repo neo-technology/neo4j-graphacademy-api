@@ -21,7 +21,7 @@ def set_quiz_status_db(userId, className, quizStatus):
     MERGE (u:User {auth0_key:{auth0_key}})
     ON CREATE SET u.createdAt=timestamp()
     MERGE (c:TrainingClass {name:{class_name}})
-    MERGE (u)-[:ENROLLED_IN]->(se:StudentEnrollment)-[:IN_CLASS]->(c)
+    MERGE (u)-[:ENROLLED_IN]->(se:StudentEnrollment {active:true})-[:IN_CLASS]->(c)
     ON CREATE SET se.createdAt=timestamp()
     WITH c, se
     MATCH (c)-[:REQUIRES]->(q:Quiz {name:{passed_quiz}})
@@ -39,7 +39,7 @@ def set_quiz_status_db(userId, className, quizStatus):
     MERGE (u:User {auth0_key:{auth0_key}})
     ON CREATE SET u.createdAt=timestamp()
     MERGE (c:TrainingClass {name:{class_name}})
-    MERGE (u)-[:ENROLLED_IN]->(se:StudentEnrollment)-[:IN_CLASS]->(c)
+    MERGE (u)-[:ENROLLED_IN]->(se:StudentEnrollment {active:true})-[:IN_CLASS]->(c)
     ON CREATE SET se.createdAt=timestamp()
     WITH c, se
     MATCH (c)-[:REQUIRES]->(q:Quiz {name:{failed_quiz}})
@@ -55,7 +55,7 @@ def get_quiz_status_db(userId, className):
   resultDict = {}
 
   passed_query = """
-    MATCH (u:User {auth0_key:{auth0_key}})-[:ENROLLED_IN]-(se:StudentEnrollment)-[:IN_CLASS]->(c:TrainingClass {name:{class_name}}),
+    MATCH (u:User {auth0_key:{auth0_key}})-[:ENROLLED_IN]-(se:StudentEnrollment {active:true})-[:IN_CLASS]->(c:TrainingClass {name:{class_name}}),
           (se)-[p:PASSED]->(q:Quiz)
     RETURN q.name AS name
     """
@@ -66,7 +66,7 @@ def get_quiz_status_db(userId, className):
     resultDict['passed'].append(record['name'])
 
   failed_query = """
-    MATCH (u:User {auth0_key:{auth0_key}})-[:ENROLLED_IN]-(se:StudentEnrollment)-[:IN_CLASS]->(c:TrainingClass {name:{class_name}}),
+    MATCH (u:User {auth0_key:{auth0_key}})-[:ENROLLED_IN]-(se:StudentEnrollment {active:true})-[:IN_CLASS]->(c:TrainingClass {name:{class_name}}),
           (se)-[p:FAILED]->(q:Quiz)
     RETURN q.name AS name
     """
@@ -77,7 +77,7 @@ def get_quiz_status_db(userId, className):
     resultDict['failed'].append(record['name'])
 
   untried_query = """
-    MATCH (u:User {auth0_key:{auth0_key}})-[:ENROLLED_IN]-(se:StudentEnrollment)-[:IN_CLASS]->(c:TrainingClass {name:{class_name}}), (c)-[:REQUIRES]->(q:Quiz)
+    MATCH (u:User {auth0_key:{auth0_key}})-[:ENROLLED_IN]-(se:StudentEnrollment {active:true})-[:IN_CLASS]->(c:TrainingClass {name:{class_name}}), (c)-[:REQUIRES]->(q:Quiz)
 WHERE 
     NOT EXISTS
           ( (se)-[:FAILED]->(q) )

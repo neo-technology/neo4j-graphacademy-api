@@ -4,10 +4,13 @@ import logging
 from lib.quizes import set_quiz_status_db, get_quiz_status_db
 from lib.classes import get_class_enrollment_db, set_class_enrollment_db, log_class_part_view_db, get_set_class_complete
 from lib.certificate import generate_certificate
+from lib.emails import email_welcome_messages
 
 logger = logging.getLogger()
 logger.setLevel(logging.INFO)
 
+def send_emails(event, context):
+    email_welcome_messages()
 
 def gen_class_certificate(event, context):
     userId = event['requestContext']['authorizer']['principalId']
