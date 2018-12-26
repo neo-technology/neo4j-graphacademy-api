@@ -104,10 +104,10 @@ RETURN u.auth0_key AS auth0_key, s.createdAt AS e_c, datetime( {epochMillis: s.c
         'cert_issued_date': record['cert_issued_date'],
         'cert_number': record['cert_number'],
         'cert_hash': record['cert_hash'],
-        'cert_url': 'https://graphacademy.neo4j.com/certificates/%s.pdf' % (record['cert_hash']),
+        'cert_url': 'https://graphacademy.neo4j.com/training/certificates/%s.pdf' % (record['cert_hash']),
         'course_url': record['course_url']
       }
-      send_email('welcome', 'Neo4j GraphAcademy <devrel@neo4j.com>', record['email'], 'Congrats on Completing the GraphAcademy course "%s"' % (tmpl_vars['course_name']), tmpl_vars)
+      send_email(record['template'], 'Neo4j GraphAcademy <devrel@neo4j.com>', record['email'], 'Congrats on Completing the GraphAcademy course "%s"' % (tmpl_vars['course_name']), tmpl_vars)
       mark_email_sent(record['auth0_key'], record['e_c'], 'congrats_email_sent')
 
 

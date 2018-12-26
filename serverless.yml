@@ -3,7 +3,8 @@ service: graphacademy-api
 provider:
   name: aws
   runtime: python2.7
-  timeout: 180
+  timeout: 30
+  memorySize: 2048
   environment: ${file(env.yml):${opt:stage}}
   iamRoleStatements: # permissions for all of your functions can be set here
     - Effect: Allow
@@ -42,6 +43,8 @@ functions:
     name: ${opt:stage}-GraphAcademySendEmails
     handler: handler.send_emails
     role: 'arn:aws:iam::715633473519:role/lambda_graphacademy'
+    events:
+     - schedule: rate(1 minute)
 
   log-training-view:
     name: ${opt:stage}-GraphAcademyLogTrainingView

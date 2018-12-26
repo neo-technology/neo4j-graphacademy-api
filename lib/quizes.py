@@ -3,6 +3,7 @@ import logging
 
 from neo4j.v1 import GraphDatabase, basic_auth
 from encryption import decrypt_value_str
+from retrying import retry
 
 logger = logging.getLogger()
 logger.setLevel(logging.INFO)
@@ -15,6 +16,7 @@ db_driver = GraphDatabase.driver(neo4j_url,  auth=basic_auth(neo4j_user, neo4j_p
   max_retry_time=15,
   max_connection_lifetime=60)
 
+@retry(stop_max_attempt_number=5, wait_fixed=(1 * 1000))
 def set_quiz_status_db(userId, className, quizStatus): 
   session = db_driver.session()
   passed_query = """
@@ -50,6 +52,7 @@ def set_quiz_status_db(userId, className, quizStatus):
     failed_results = session.run(failed_query, parameters={"auth0_key": userId, "class_name": className, "failed_quiz": failed_quiz})
     failed_results.consume()
 
+@retry(stop_max_attempt_number=5, wait_fixed=(1 * 1000))
 def get_quiz_status_db(userId, className):
   session = db_driver.session()
   resultDict = {}

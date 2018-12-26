@@ -4,6 +4,8 @@ import logging
 from neo4j.v1 import GraphDatabase, basic_auth
 from encryption import decrypt_value_str
 
+from retrying import retry
+
 logger = logging.getLogger()
 logger.setLevel(logging.INFO)
 
@@ -15,6 +17,7 @@ db_driver = GraphDatabase.driver(neo4j_url,  auth=basic_auth(neo4j_user, neo4j_p
   max_retry_time=15,
   max_connection_lifetime=60)
 
+@retry(stop_max_attempt_number=5, wait_fixed=(1 * 1000))
 def get_class_enrollment_db(userId, className): 
   enrolled = False
   session = db_driver.session()
@@ -31,6 +34,7 @@ def get_class_enrollment_db(userId, className):
 
   return enrolled
 
+@retry(stop_max_attempt_number=5, wait_fixed=(1 * 1000))
 def get_set_class_complete(userId, className):
   session = db_driver.session()
   enrollment_query = """
@@ -53,6 +57,7 @@ RETURN coc.certificate_number AS cert_number, coc.certificate_hash AS cert_hash,
   for record in res:
     return record
 
+@retry(stop_max_attempt_number=5, wait_fixed=(1 * 1000))
 def set_class_enrollment_db(userId, className, firstName, lastName): 
   session = db_driver.session()
   enrollment_query = """
@@ -67,6 +72,7 @@ def set_class_enrollment_db(userId, className, firstName, lastName):
 
   return True
 
+@retry(stop_max_attempt_number=5, wait_fixed=(1 * 1000))
 def log_class_part_view_db(userId, className, partName): 
   session = db_driver.session()
   log_query = """

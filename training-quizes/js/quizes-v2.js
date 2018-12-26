@@ -116,7 +116,7 @@ function updateQuizStatus() {
   if (passedArray.length == 7) {
     $('#module-8').find('#quizes-result').html("<p>All quizes taken successfully.</p>");
   } else {
-    $('#module-8').find('#quizes-result').html("<p>Some quizes not answered successfully.  Return to course modules by clicking on #s above.</p>");
+    $('#module-8').find('#quizes-result').html("<p>Some quizes not answered successfully.  Return to course modules by clicking on the numbers  in the navigation at the top of the page.</p>");
   }
   return { "passed": passedArray, "failed": failedArray };
 }
