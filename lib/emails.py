@@ -52,6 +52,38 @@ RETURN s
     results = session.run(email_queued_query, parameters={"auth0_key":auth0_key, "createdAt":timestamp, "field":field}).consume()
     return results
 
+def email_reminder_messages():
+    session = db_driver.session()
+
+    # cypher query for email
+    reminder_email_query = """
+MATCH (u:User)-[:ENROLLED_IN]->(s:StudentEnrollment {active:true})-[:IN_CLASS]-(c:TrainingClass)
+WHERE EXISTS (c.reminder_email_template)
+AND NOT EXISTS (s.reminder_email_sent)
+AND datetime() > datetime( {epochMillis: s.createdAt}) + c.reminder_time
+AND NOT u.email IS NULL
+AND NOT EXISTS(s.completed_date)
+RETURN u.auth0_key AS auth0_key, s.createdAt AS e_c, datetime( {epochMillis: s.createdAt}) AS enrollment_created_at, c.welcome_email_template AS template, c.time_est AS time_est, datetime( {epochMillis: s.createdAt}) + c.deadline AS deadline, c.reminder_time.days + ' days' AS reminder_time, c.fullname AS course_name, coalesce(s.first_name, u.first_name, u.firstName) + ' ' + coalesce(s.last_name, u.last_name, u.lastName) AS display_name, u.email AS email, c.course_url AS course_url
+"""
+    results = session.run(reminder_email_query)
+    for record in results:
+      # mark_email_queued
+      mark_email_queued(record['auth0_key'], record['e_c'], 'reminder_email_sent')
+      
+      tmpl_vars = {
+        'course_name': record['course_name'],
+        'deadline': record['deadline'].iso_format()[:10],
+        'time_est': record['time_est'],
+        'reminder_time': record['reminder_time'],
+        'display_name': record['display_name'],
+        'course_url': record['course_url']
+      }
+      send_email('reminder', 'Neo4j GraphAcademy <devrel@neo4j.com>', record['email'], 'Reminder to complete GraphAcademy course: %s' % (tmpl_vars['course_name']), tmpl_vars)
+      mark_email_sent(record['auth0_key'], record['e_c'], 'reminder_email_sent')
+
+
+
+
 def email_welcome_messages():
     session = db_driver.session()
 

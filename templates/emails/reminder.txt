@@ -1,0 +1,14 @@
+Reminder to Complete your GraphAcademy course: {{course_name}}
+
+
+Hello {{display_name}},
+
+Hope you're starting to learn more about the power of graphs to store and query relationships!
+
+This is just a reminder that you enrolled in the GraphAcademy course "{{course_name}}" more than {{reminder_time}} ago. You have until {{deadline}} to complete the course.  After that, you'll need to re-enroll.
+
+We hope you enjoy the course! After you complete all associated quizes, you'll get a great Certificate of Completion from Neo4j that you can proudly stick on your refrigerator or office wall!
+
+Continue the Course: {{course_url}}
+
+Best wishes on your GraphAcademy learning journey!
