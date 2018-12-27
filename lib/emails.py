@@ -63,7 +63,7 @@ AND NOT EXISTS (s.reminder_email_sent)
 AND datetime() > datetime( {epochMillis: s.createdAt}) + c.reminder_time
 AND NOT u.email IS NULL
 AND NOT EXISTS(s.completed_date)
-RETURN u.auth0_key AS auth0_key, s.createdAt AS e_c, datetime( {epochMillis: s.createdAt}) AS enrollment_created_at, c.welcome_email_template AS template, c.time_est AS time_est, datetime( {epochMillis: s.createdAt}) + c.deadline AS deadline, c.reminder_time.days + ' days' AS reminder_time, c.fullname AS course_name, coalesce(s.first_name, u.first_name, u.firstName) + ' ' + coalesce(s.last_name, u.last_name, u.lastName) AS display_name, u.email AS email, c.course_url AS course_url
+RETURN u.auth0_key AS auth0_key, s.createdAt AS e_c, datetime( {epochMillis: s.createdAt}) AS enrollment_created_at, c.reminder_email_template AS template, c.time_est AS time_est, datetime( {epochMillis: s.createdAt}) + c.deadline AS deadline, c.reminder_time.days + ' days' AS reminder_time, c.fullname AS course_name, coalesce(s.first_name, u.first_name, u.firstName) + ' ' + coalesce(s.last_name, u.last_name, u.lastName) AS display_name, u.email AS email, c.course_url AS course_url
 """
     results = session.run(reminder_email_query)
     for record in results:
