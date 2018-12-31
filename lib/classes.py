@@ -65,7 +65,7 @@ def set_class_enrollment_db(userId, className, firstName, lastName):
     ON CREATE SET u.createdAt=timestamp()
     MERGE (c:TrainingClass {name:{class_name}})
     MERGE (u)-[:ENROLLED_IN]->(se:StudentEnrollment {active: true})-[:IN_CLASS]->(c)
-    ON CREATE SET se.createdAt=timestamp(), se.first_name={first_name}, se.last_name={last_name}
+    ON CREATE SET se.createdAt=timestamp(), se.enrolled_date=datetime(), se.first_name={first_name}, se.last_name={last_name}
     """
   res = session.run(enrollment_query, parameters={"auth0_key": userId, "class_name": className, "first_name": firstName, "last_name": lastName})
   res.consume()
@@ -80,7 +80,7 @@ def log_class_part_view_db(userId, className, partName):
     ON CREATE SET u.createdAt=timestamp()
     MERGE (c:TrainingClass {name:{class_name}})
     MERGE (u)-[:ENROLLED_IN]->(se:StudentEnrollment {active:true})-[:IN_CLASS]->(c)
-    ON CREATE SET se.createdAt=timestamp()
+    ON CREATE SET se.createdAt=timestamp(), se.enrolled_date=datetime()
     MERGE (c)-[:INCLUDES]->(p:TrainingPart {name:{part_name}})
     ON CREATE SET p.createdAt=timestamp()
     CREATE (se)-[v:VIEWED]->(p)
