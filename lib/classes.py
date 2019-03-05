@@ -9,7 +9,7 @@ from retrying import retry
 logger = logging.getLogger()
 logger.setLevel(logging.INFO)
 
-neo4j_url = 'bolt://%s' % (decrypt_value_str(os.environ['GRAPHACADEMY_DB_HOST_PORT']))
+neo4j_url = 'bolt+routing://%s' % (decrypt_value_str(os.environ['GRAPHACADEMY_DB_HOST_PORT']))
 neo4j_user = decrypt_value_str(os.environ['GRAPHACADEMY_DB_USER']) 
 neo4j_password = decrypt_value_str(os.environ['GRAPHACADEMY_DB_PW'])
 

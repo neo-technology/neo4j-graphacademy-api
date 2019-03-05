@@ -18,7 +18,7 @@ logger.setLevel(LOGGING_LEVEL)
 
 app = flask.Flask('myemail')
 
-neo4j_url = 'bolt://%s' % (decrypt_value_str(os.environ['GRAPHACADEMY_DB_HOST_PORT']))
+neo4j_url = 'bolt+routing://%s' % (decrypt_value_str(os.environ['GRAPHACADEMY_DB_HOST_PORT']))
 neo4j_user = decrypt_value_str(os.environ['GRAPHACADEMY_DB_USER'])
 neo4j_password = decrypt_value_str(os.environ['GRAPHACADEMY_DB_PW'])
 
@@ -170,7 +170,6 @@ def send_email(template, from_line, to_address, subject, tmpl_vars):
     
 
 def generate_certificate(user_id, name, date, cert_number, course_name):
-    #user_id = event['requestContext']['authorizer']['principalId']
     cert_hash = hashlib.sha256(str(cert_number).encode("utf-8")).hexdigest()
     cert_path = 'training/certificates'
     cert_url = 'https://graphacademy.neo4j.com/%s/%s.pdf' % (cert_path, cert_hash)

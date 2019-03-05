@@ -80,7 +80,7 @@ jQuery(document).ready(function () {
       }
     );
     */
-  } else {
+  } else if (typeof window.trainingPartName !== 'undefined') {
     window.location = "https://neo4j.com/accounts/login/?targetUrl=" + encodeURI(window.location.href);
   }
 });
