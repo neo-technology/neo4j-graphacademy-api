@@ -1,5 +1,6 @@
 import os
 import logging
+import boto3
 
 from neo4j.v1 import GraphDatabase, basic_auth
 from encryption import decrypt_value_str
@@ -8,9 +9,24 @@ from retrying import retry
 logger = logging.getLogger()
 logger.setLevel(logging.INFO)
 
-neo4j_url = 'bolt+routing://%s' % (decrypt_value_str(os.environ['GRAPHACADEMY_DB_HOST_PORT']))
-neo4j_user = decrypt_value_str(os.environ['GRAPHACADEMY_DB_USER']) 
-neo4j_password = decrypt_value_str(os.environ['GRAPHACADEMY_DB_PW'])
+DEPLOY_STAGE = os.environ['DEPLOY_STAGE']
+
+def get_ssm_param(keypart):
+  ssmc = boto3.client('ssm')
+  resp = ssmc.get_parameter(
+    Name='com.neo4j.graphacademy.%s.%s' % (DEPLOY_STAGE, keypart),
+    WithDecryption=True
+  )
+  return resp['Parameter']['Value']
+
+if DEPLOY_STAGE == 'prod':
+  boltproto = 'bolt+routing://'
+else:
+  boltproto = 'bolt://'
+neo4j_url = '%s%s' % (boltproto, get_ssm_param('dbhostport'))
+
+neo4j_user = get_ssm_param('dbuser')
+neo4j_password = get_ssm_param('dbpassword')
 
 db_driver = GraphDatabase.driver(neo4j_url,  auth=basic_auth(neo4j_user, neo4j_password),
   max_retry_time=15,

@@ -5,7 +5,9 @@ provider:
   runtime: python2.7
   timeout: 30
   memorySize: 2048
-  environment: ${file(env.yml):${opt:stage}}
+  stage: ${opt:stage, 'dev'}
+  environment:
+    DEPLOY_STAGE: ${self:provider.stage}
   iamRoleStatements: # permissions for all of your functions can be set here
     - Effect: Allow
       Action:
@@ -18,7 +20,7 @@ plugins:
 
 functions:
   set-quiz-status:
-    name: ${opt:stage}-GraphAcademySetQuizStatus
+    name: ${self:provider.stage}-GraphAcademySetQuizStatus
     handler: handler.set_quiz_status
     role: 'arn:aws:iam::715633473519:role/lambda_graphacademy'
     events:
@@ -29,7 +31,7 @@ functions:
           authorizer: arn:aws:lambda:us-east-1:715633473519:function:Auth0JwtAuthorizor:GRAPHACADEMY
 
   get-quiz-status:
-    name: ${opt:stage}-GraphAcademyGetQuizStatus
+    name: ${self:provider.stage}-GraphAcademyGetQuizStatus
     handler: handler.get_quiz_status
     role: 'arn:aws:iam::715633473519:role/lambda_graphacademy'
     events:
@@ -40,14 +42,14 @@ functions:
           authorizer: arn:aws:lambda:us-east-1:715633473519:function:Auth0JwtAuthorizor:GRAPHACADEMY
 
   send-emails:
-    name: ${opt:stage}-GraphAcademySendEmails
+    name: ${self:provider.stage}-GraphAcademySendEmails
     handler: handler.send_emails
     role: 'arn:aws:iam::715633473519:role/lambda_graphacademy'
     events:
      - schedule: rate(1 minute)
 
   log-training-view:
-    name: ${opt:stage}-GraphAcademyLogTrainingView
+    name: ${self:provider.stage}-GraphAcademyLogTrainingView
     handler: handler.log_training_view
     role: 'arn:aws:iam::715633473519:role/lambda_graphacademy'
     events:
@@ -58,7 +60,7 @@ functions:
           authorizer: arn:aws:lambda:us-east-1:715633473519:function:Auth0JwtAuthorizor:GRAPHACADEMY
 
   set-class-enrollment:
-    name: ${opt:stage}-GraphAcademySetClassEnrollment
+    name: ${self:provider.stage}-GraphAcademySetClassEnrollment
     handler: handler.set_class_enrollment
     role: 'arn:aws:iam::715633473519:role/lambda_graphacademy'
     events:
@@ -69,7 +71,7 @@ functions:
           authorizer: arn:aws:lambda:us-east-1:715633473519:function:Auth0JwtAuthorizor:GRAPHACADEMY
 
   gen-class-certificate:
-    name: ${opt:stage}-GraphAcademyGenClassCertificate
+    name: ${self:provider.stage}-GraphAcademyGenClassCertificate
     handler: handler.gen_class_certificate
     role: 'arn:aws:iam::715633473519:role/lambda_graphacademy'
     events:
@@ -81,7 +83,7 @@ functions:
 
 
   get-class-enrollment:
-    name: ${opt:stage}-GraphAcademyGetClassEnrollment
+    name: ${self:provider.stage}-GraphAcademyGetClassEnrollment
     handler: handler.get_class_enrollment
     role: 'arn:aws:iam::715633473519:role/lambda_graphacademy'
     events:
