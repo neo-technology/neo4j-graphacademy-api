@@ -6,3 +6,5 @@ We'd like to present you with a Certificate of Completion to recognize your acco
 
 Download here:
 {{cert_url}}
+
+You can add this certificate (# {{cert_number}} and link to your certificate) to your LinkedIn Profile.
