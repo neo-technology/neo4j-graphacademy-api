@@ -66,6 +66,8 @@ def generate_certificate(user_id, name, date, cert_number, cert_hash, course_nam
         with open(local_pdf_file_name, 'rb') as data:
             s3.put_object(ACL="public-read", Body=data, Bucket=BUCKET_NAME, Key=pdf_location)
 
+        #Add marketo call to mark this user/course as completed
+
         return "https://{bucket_name}/{pdf_location}".format(bucket_name=BUCKET_NAME,
                                                          pdf_location=pdf_location)
 
