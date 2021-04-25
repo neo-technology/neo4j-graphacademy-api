@@ -99,7 +99,7 @@ def set_class_enrollment(event, context):
     }
 
     # Add marketo call to note enrollment of user in a course
-    
+
     return response
 
 def log_training_view(event, context):
