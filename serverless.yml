@@ -92,6 +92,16 @@ functions:
           cors: true
           path: getClassEnrollment
           authorizer: arn:aws:lambda:us-east-1:715633473519:function:Auth0JwtAuthorizor:GRAPHACADEMY
+  get-print-form:
+    name: ${self:provider.stage}-GetPrintForm
+    handler: print.get_print_form
+    role: 'arn:aws:iam::715633473519:role/lambda_graphacademy'
+    events:
+      - http:
+          method: GET
+          cors: true
+          path: getPrintForm
+          authorizer: arn:aws:lambda:us-east-1:715633473519:function:Auth0JwtAuthorizor:GRAPHACADEMY
 
 
 package:
