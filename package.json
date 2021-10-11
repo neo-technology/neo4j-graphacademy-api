@@ -1,0 +1,29 @@
+{
+  "name": "neo4j-graphacademy-api",
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.js",
+  "directories": {
+    "lib": "lib"
+  },
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/neo-technology/neo4j-graphacademy-api.git"
+  },
+  "author": "",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/neo-technology/neo4j-graphacademy-api/issues"
+  },
+  "homepage": "https://github.com/neo-technology/neo4j-graphacademy-api#readme",
+  "devDependencies": {
+    "install": "^0.13.0",
+    "npm": "^7.19.0",
+    "serverless": "^2.48.1",
+    "serverless-offline": "^7.0.0",
+    "serverless-python-requirements": "^5.1.1"
+  }
+}

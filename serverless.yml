@@ -2,21 +2,25 @@ service: graphacademy-api
 
 provider:
   name: aws
-  runtime: python2.7
+  runtime: python3.8
   timeout: 30
   memorySize: 2048
   stage: ${opt:stage, 'dev'}
   environment:
     DEPLOY_STAGE: ${self:provider.stage}
-  iamRoleStatements: # permissions for all of your functions can be set here
-    - Effect: Allow
-      Action:
-        - s3:ListBucket
-        - s3:PutObject
-      Resource: "arn:aws:s3:::graphacademy.neo4j.com/*"
+  iam:
+    role:
+      statements: # permissions for all of your functions can be set here
+        - Effect: Allow
+          Action:
+            - s3:ListBucket
+            - s3:PutObject
+          Resource: "arn:aws:s3:::graphacademy.neo4j.com/*"
+  lambdaHashingVersion: "20201221"
 
 plugins:
   - serverless-python-requirements
+  - serverless-offline
 
 functions:
   set-quiz-status:
@@ -105,9 +109,10 @@ functions:
 
 
 package:
-  exclude:
-    - node_modules/**
-    - a/**
+  patterns:
+    - "!node_modules/**"
+    - "!a/**"
+    - "!venv/**"
 
 
 custom:

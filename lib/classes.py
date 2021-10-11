@@ -105,3 +105,12 @@ def log_class_part_view_db(userId, className, partName):
   res.consume()
 
   return True
+
+def did_user_pass_certification(userId, certificationName="neo4j-4.x-certification-test" ):
+  session  = db_driver.session()
+  q = """
+  MATCH(u: User {auth0_key: {userId}}) - [t:TOOK] - (c: Certification:Exam {name: {certificationName}}) return c.passed
+  """
+  res = session.run(q,parameters= {"userId" : userId, "certificationName": certificationName })
+  rec = res.single()
+  return rec['passed']

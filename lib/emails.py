@@ -10,7 +10,7 @@ from flask import render_template
 from botocore.vendored import requests
 from encryption import decrypt_value_str
 
-from neo4j.v1 import GraphDatabase, basic_auth
+from neo4j import GraphDatabase, basic_auth
 
 LOGGING_LEVEL = int(os.environ.get("LOGGING_LEVEL", 0))
 logger = logging.getLogger()

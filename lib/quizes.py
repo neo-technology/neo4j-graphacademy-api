@@ -2,8 +2,8 @@ import os
 import logging
 import boto3
 
-from neo4j.v1 import GraphDatabase, basic_auth
-from encryption import decrypt_value_str
+from neo4j import GraphDatabase, basic_auth
+from .encryption import decrypt_value_str
 from retrying import retry
 
 logger = logging.getLogger()
