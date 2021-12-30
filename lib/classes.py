@@ -1,44 +1,40 @@
 import os
 import logging
-import boto3
-
-from neo4j.v1 import GraphDatabase, basic_auth
-from encryption import decrypt_value_str
-
+from neo4j import GraphDatabase, basic_auth
 from retrying import retry
 
 logger = logging.getLogger()
 logger.setLevel(logging.INFO)
 
-DEPLOY_STAGE = os.environ['DEPLOY_STAGE']
+NEO4J_URL = os.environ['NEO4J_URL']
+NEO4J_USER = os.environ['NEO4J_USER']
+NEO4J_PASS = os.environ['NEO4J_PASS']
 
-def get_ssm_param(keypart):
-  ssmc = boto3.client('ssm')
-  resp = ssmc.get_parameter(
-    Name='com.neo4j.graphacademy.%s.%s' % (DEPLOY_STAGE, keypart),
-    WithDecryption=True
-  )
-  return resp['Parameter']['Value']
+# def get_ssm_param(keypart):
+#   ssmc = boto3.client('ssm')
+#   resp = ssmc.get_parameter(
+#     Name='com.neo4j.graphacademy.%s.%s' % (DEPLOY_STAGE, keypart),
+#     WithDecryption=True
+#   )
+#   return resp['Parameter']['Value']
 
-if DEPLOY_STAGE == 'prod':
-  boltproto = 'bolt+routing://'
-else:
-  boltproto = 'bolt://'
-neo4j_url = '%s%s' % (boltproto, get_ssm_param('dbhostport'))
-neo4j_user = get_ssm_param('dbuser')
-neo4j_password = get_ssm_param('dbpassword')
+# if DEPLOY_STAGE == 'prod':
+#   boltproto = 'bolt+routing://'
+# else:
+#   boltproto = 'bolt://'
+# neo4j_url = '%s%s' % (boltproto, get_ssm_param('dbhostport'))
+# neo4j_user = get_ssm_param('dbuser')
+# neo4j_password = get_ssm_param('dbpassword')
 
-db_driver = GraphDatabase.driver(neo4j_url,  auth=basic_auth(neo4j_user, neo4j_password),
-  max_retry_time=15,
-  max_connection_lifetime=60)
+db_driver = GraphDatabase.driver(NEO4J_URL,  auth=basic_auth(NEO4J_USER, NEO4J_PASS))
 
 @retry(stop_max_attempt_number=5, wait_fixed=(1 * 1000))
 def get_class_enrollment_db(userId, className): 
   enrolled = False
   session = db_driver.session()
   enrollment_query = """
-    MATCH (u:User {auth0_key:{auth0_key}}),
-    (c:TrainingClass {name:{class_name}}),
+    MATCH (u:User {auth0_key:$auth0_key}),
+    (c:TrainingClass {name:$class_name}),
     (u)-[:ENROLLED_IN]->(se:StudentEnrollment)-[:IN_CLASS]->(c)
     WHERE se.active=true
     RETURN se
@@ -53,8 +49,8 @@ def get_class_enrollment_db(userId, className):
 def get_set_class_complete(userId, className):
   session = db_driver.session()
   enrollment_query = """
-MATCH (u:User {auth0_key:{auth0_key}})-
-     [:ENROLLED_IN]->(se:StudentEnrollment)-[:IN_CLASS]->(c:TrainingClass {name:{class_name}})
+MATCH (u:User {auth0_key:$auth0_key})-
+     [:ENROLLED_IN]->(se:StudentEnrollment)-[:IN_CLASS]->(c:TrainingClass {name:$class_name})
 WHERE
   se.active=true
 WITH u.fullname AS user_name, c.fullname AS course_name, se.first_name + ' ' + se.last_name AS display_name, se
@@ -76,11 +72,11 @@ RETURN coc.certificate_number AS cert_number, coc.certificate_hash AS cert_hash,
 def set_class_enrollment_db(userId, className, firstName, lastName): 
   session = db_driver.session()
   enrollment_query = """
-    MERGE (u:User {auth0_key:{auth0_key}})
+    MERGE (u:User {auth0_key:$auth0_key})
     ON CREATE SET u.createdAt=timestamp()
-    MERGE (c:TrainingClass {name:{class_name}})
+    MERGE (c:TrainingClass {name:$class_name})
     MERGE (u)-[:ENROLLED_IN]->(se:StudentEnrollment {active: true})-[:IN_CLASS]->(c)
-    ON CREATE SET se.createdAt=timestamp(), se.enrolled_date=datetime(), se.first_name={first_name}, se.last_name={last_name}
+    ON CREATE SET se.createdAt=timestamp(), se.enrolled_date=datetime(), se.first_name=$first_name, se.last_name=$last_name
     """
   res = session.run(enrollment_query, parameters={"auth0_key": userId, "class_name": className, "first_name": firstName, "last_name": lastName})
   res.consume()
@@ -91,12 +87,12 @@ def set_class_enrollment_db(userId, className, firstName, lastName):
 def log_class_part_view_db(userId, className, partName): 
   session = db_driver.session()
   log_query = """
-    MERGE (u:User {auth0_key:{auth0_key}})
+    MERGE (u:User {auth0_key:$auth0_key})
     ON CREATE SET u.createdAt=timestamp()
-    MERGE (c:TrainingClass {name:{class_name}})
+    MERGE (c:TrainingClass {name:$class_name})
     MERGE (u)-[:ENROLLED_IN]->(se:StudentEnrollment {active:true})-[:IN_CLASS]->(c)
     ON CREATE SET se.createdAt=timestamp(), se.enrolled_date=datetime()
-    MERGE (c)-[:INCLUDES]->(p:TrainingPart {name:{part_name}})
+    MERGE (c)-[:INCLUDES]->(p:TrainingPart {name:$part_name})
     ON CREATE SET p.createdAt=timestamp()
     CREATE (se)-[v:VIEWED]->(p)
     SET v.createdAt=timestamp()
@@ -109,7 +105,7 @@ def log_class_part_view_db(userId, className, partName):
 def did_user_pass_certification(userId, certificationName="neo4j-4.x-certification-test" ):
   session  = db_driver.session()
   q = """
-  MATCH(u: User {auth0_key: {userId}}) - [t:TOOK] - (c: Certification:Exam {name: {certificationName}}) return c.passed
+  MATCH(u: User {auth0_key: $userId}) - [t:TOOK] - (c: Certification:Exam {name: $certificationName}) return c.passed
   """
   res = session.run(q,parameters= {"userId" : userId, "certificationName": certificationName })
   rec = res.single()

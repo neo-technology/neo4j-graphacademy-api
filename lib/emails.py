@@ -1,5 +1,4 @@
 import base64
-import datetime
 import hashlib
 import logging
 import os
@@ -18,28 +17,31 @@ logger.setLevel(LOGGING_LEVEL)
 
 app = flask.Flask('myemail')
 
-DEPLOY_STAGE = os.environ['DEPLOY_STAGE']
+# def get_ssm_param(keypart):
+#   ssmc = boto3.client('ssm')
+#   resp = ssmc.get_parameter(
+#     Name='com.neo4j.graphacademy.%s.%s' % (DEPLOY_STAGE, keypart),
+#     WithDecryption=True
+#   )
+#   return resp['Parameter']['Value']
 
-def get_ssm_param(keypart):
-  ssmc = boto3.client('ssm')
-  resp = ssmc.get_parameter(
-    Name='com.neo4j.graphacademy.%s.%s' % (DEPLOY_STAGE, keypart),
-    WithDecryption=True
-  )
-  return resp['Parameter']['Value']
+# if DEPLOY_STAGE == 'prod':
+#   boltproto = 'bolt+routing://'
+# else:
+#   boltproto = 'bolt://'
+# neo4j_url = '%s%s' % (boltproto, get_ssm_param('dbhostport'))
 
-if DEPLOY_STAGE == 'prod':
-  boltproto = 'bolt+routing://'
-else:
-  boltproto = 'bolt://'
-neo4j_url = '%s%s' % (boltproto, get_ssm_param('dbhostport'))
+# neo4j_user = get_ssm_param('dbuser')
+# neo4j_password = get_ssm_param('dbpassword')
 
-neo4j_user = get_ssm_param('dbuser')
-neo4j_password = get_ssm_param('dbpassword')
+# db_driver = GraphDatabase.driver(neo4j_url,  auth=basic_auth(neo4j_user, neo4j_password),
+#   max_retry_time=15,
+#   max_connection_lifetime=60)
 
-db_driver = GraphDatabase.driver(neo4j_url,  auth=basic_auth(neo4j_user, neo4j_password),
-  max_retry_time=15,
-  max_connection_lifetime=60)
+NEO4J_URL = os.environ['NEO4J_URL']
+NEO4J_USER = os.environ['NEO4J_USER']
+NEO4J_PASS = os.environ['NEO4J_PASS']
+db_driver = GraphDatabase.driver(NEO4J_URL, auth=basic_auth(NEO4J_USER, NEO4J_PASS))
 
 def mark_email_queued(auth0_key, timestamp, field):
     session = db_driver.session()

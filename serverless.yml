@@ -1,4 +1,4 @@
-service: graphacademy-api
+service: community-graphacademy
 
 provider:
   name: aws
@@ -8,6 +8,9 @@ provider:
   stage: ${opt:stage, 'dev'}
   environment:
     DEPLOY_STAGE: ${self:provider.stage}
+    NEO4J_URL: ${env:NEO4J_URL}
+    NEO4J_USER: ${env:NEO4J_USER}
+    NEO4J_PASS: ${env:NEO4J_PASS}
   iam:
     role:
       statements: # permissions for all of your functions can be set here
@@ -17,7 +20,14 @@ provider:
             - s3:PutObject
           Resource: "arn:aws:s3:::graphacademy.neo4j.com/*"
   lambdaHashingVersion: "20201221"
-
+  httpApi:
+    cors: true
+    authorizers:
+      serviceAuthorizer:
+        identitySource: $request.header.Authorization
+        issuerUrl: ${env:AUTH0_DOMAIN}
+        audience:
+          - ${env:AUTH0_AUDIENCE}
 plugins:
   - serverless-python-requirements
   - serverless-offline
@@ -28,12 +38,11 @@ functions:
     handler: handler.set_quiz_status
     role: 'arn:aws:iam::715633473519:role/lambda_graphacademy'
     events:
-      - http:
+      - httpApi:
           method: POST
           cors: true
-          path: setQuizStatus
-          authorizer: arn:aws:lambda:us-east-1:715633473519:function:Auth0JwtAuthorizor:GRAPHACADEMY
-
+          path: /setQuizStatus
+          authorizer: serviceAuthorizer
   get-quiz-status:
     name: ${self:provider.stage}-GraphAcademyGetQuizStatus
     handler: handler.get_quiz_status
@@ -42,8 +51,8 @@ functions:
       - http:
           method: GET
           cors: true
-          path: getQuizStatus
-          authorizer: arn:aws:lambda:us-east-1:715633473519:function:Auth0JwtAuthorizor:GRAPHACADEMY
+          path: /getQuizStatus
+          authorizer: serviceAuthorizer
 
   send-emails:
     name: ${self:provider.stage}-GraphAcademySendEmails
@@ -60,8 +69,8 @@ functions:
       - http:
           method: POST
           cors: true
-          path: logTrainingView
-          authorizer: arn:aws:lambda:us-east-1:715633473519:function:Auth0JwtAuthorizor:GRAPHACADEMY
+          path: /logTrainingView
+          authorizer: serviceAuthorizer
 
   set-class-enrollment:
     name: ${self:provider.stage}-GraphAcademySetClassEnrollment
@@ -71,8 +80,8 @@ functions:
       - http:
           method: POST
           cors: true
-          path: setClassEnrollment
-          authorizer: arn:aws:lambda:us-east-1:715633473519:function:Auth0JwtAuthorizor:GRAPHACADEMY
+          path: /setClassEnrollment
+          authorizer: serviceAuthorizer
 
   gen-class-certificate:
     name: ${self:provider.stage}-GraphAcademyGenClassCertificate
@@ -82,8 +91,8 @@ functions:
       - http:
           method: POST
           cors: true
-          path: genClassCertificate
-          authorizer: arn:aws:lambda:us-east-1:715633473519:function:Auth0JwtAuthorizor:GRAPHACADEMY
+          path: /genClassCertificate
+          authorizer: serviceAuthorizer
 
 
   get-class-enrollment:
@@ -94,8 +103,8 @@ functions:
       - http:
           method: GET
           cors: true
-          path: getClassEnrollment
-          authorizer: arn:aws:lambda:us-east-1:715633473519:function:Auth0JwtAuthorizor:GRAPHACADEMY
+          path: /getClassEnrollment
+          authorizer: serviceAuthorizer
   get-print-form:
     name: ${self:provider.stage}-GetPrintForm
     handler: print.get_print_form
@@ -104,8 +113,8 @@ functions:
       - http:
           method: GET
           cors: true
-          path: getPrintForm
-          authorizer: arn:aws:lambda:us-east-1:715633473519:function:Auth0JwtAuthorizor:GRAPHACADEMY
+          path: /getPrintForm
+          authorizer: serviceAuthorizer
 
 
 package:

@@ -1,38 +1,39 @@
 import os
 import logging
-import boto3
 
 from neo4j import GraphDatabase, basic_auth
-from .encryption import decrypt_value_str
 from retrying import retry
 
 logger = logging.getLogger()
 logger.setLevel(logging.INFO)
 
-DEPLOY_STAGE = os.environ['DEPLOY_STAGE']
 
-def get_ssm_param(keypart):
-  ssmc = boto3.client('ssm')
-  resp = ssmc.get_parameter(
-    Name='com.neo4j.graphacademy.%s.%s' % (DEPLOY_STAGE, keypart),
-    WithDecryption=True
-  )
-  return resp['Parameter']['Value']
+# def get_ssm_param(keypart):
+#   ssmc = boto3.client('ssm')
+#   resp = ssmc.get_parameter(
+#     Name='com.neo4j.graphacademy.%s.%s' % (DEPLOY_STAGE, keypart),
+#     WithDecryption=True
+#   )
+#   return resp['Parameter']['Value']
 
-if DEPLOY_STAGE == 'prod':
-  boltproto = 'bolt+routing://'
-else:
-  boltproto = 'bolt://'
-neo4j_url = '%s%s' % (boltproto, get_ssm_param('dbhostport'))
+# if DEPLOY_STAGE == 'prod':
+#   boltproto = 'bolt+routing://'
+# else:
+#   boltproto = 'bolt://'
+# neo4j_url = '%s%s' % (boltproto, get_ssm_param('dbhostport'))
 
-neo4j_user = get_ssm_param('dbuser')
-neo4j_password = get_ssm_param('dbpassword')
+# neo4j_user = get_ssm_param('dbuser')
+# neo4j_password = get_ssm_param('dbpassword')
 
-db_driver = GraphDatabase.driver(neo4j_url,  auth=basic_auth(neo4j_user, neo4j_password),
-  max_retry_time=15,
-  max_connection_lifetime=60)
+# db_driver = GraphDatabase.driver(neo4j_url,  auth=basic_auth(neo4j_user, neo4j_password),
+#   max_retry_time=15,
+#   max_connection_lifetime=60)
 
-@retry(stop_max_attempt_number=5, wait_fixed=(1 * 1000))
+NEO4j_URL = os.environ['NEO4J_URL']
+NEO4J_USER = os.environ['NEO4J_USER']
+NEO4J_PASS = os.environ['NEO4J_PASS']
+db_driver = GraphDatabase.driver(NEO4j_URL, auth=basic_auth(NEO4j_USER, NEO4j_PASS))
+
 def set_quiz_status_db(userId, className, quizStatus): 
   session = db_driver.session()
   passed_query = """
