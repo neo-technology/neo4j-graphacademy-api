@@ -1,7 +1,5 @@
 import json
-import os
 import logging
-import boto3
 from lib.quizes import set_quiz_status_db, get_quiz_status_db
 from lib.classes import get_class_enrollment_db, set_class_enrollment_db, log_class_part_view_db, get_set_class_complete
 from lib.certificate import generate_certificate
@@ -16,7 +14,7 @@ def send_emails(event, context):
     email_reminder_messages()
 
 def gen_class_certificate(event, context):
-    userId = event['requestContext']['authorizer']['principalId']
+    userId = event['requestContext']['authorizer']['jwt']['claims']['sub'] 
     requestData = json.loads(event["body"])
     className = requestData['className']
 
@@ -52,7 +50,7 @@ def gen_class_certificate(event, context):
 
 
 def get_class_enrollment(event, context):
-    user = event['requestContext']['authorizer']['principalId']
+    user = event['requestContext']['authorizer']['jwt']['claims']['sub'] 
     className = event['queryStringParameters']['className']
 
     enrollment = get_class_enrollment_db(user, className)
@@ -75,7 +73,7 @@ def get_class_enrollment(event, context):
     return response
 
 def set_class_enrollment(event, context):
-    user = event['requestContext']['authorizer']['principalId']
+    user = event['requestContext']['authorizer']['jwt']['claims']['sub'] 
     requestData = json.loads(event["body"])
     className = requestData['className']
     firstName = requestData['firstName']
@@ -103,7 +101,7 @@ def set_class_enrollment(event, context):
     return response
 
 def log_training_view(event, context):
-    user = event['requestContext']['authorizer']['principalId']
+    user = event['requestContext']['authorizer']['jwt']['claims']['sub'] 
     requestData = json.loads(event["body"])
 
     className = requestData['className']
@@ -128,7 +126,7 @@ def log_training_view(event, context):
 
 
 def get_quiz_status(event, context):
-    user = event['requestContext']['authorizer']['principalId']
+    user = event['requestContext']['authorizer']['jwt']['claims']['sub'] 
     className = event['queryStringParameters']['className']
 
     quizStatus = get_quiz_status_db(user, className)
@@ -149,7 +147,7 @@ def get_quiz_status(event, context):
     return response
 
 def set_quiz_status(event, context):
-    user = event['requestContext']['authorizer']['principalId']
+    user = event['requestContext']['authorizer']['jwt']['claims']['sub'] 
     requestData = json.loads(event["body"])
 
     set_quiz_status_db(user, requestData["className"], {"passed": requestData["passed"], "failed": requestData["failed"]})

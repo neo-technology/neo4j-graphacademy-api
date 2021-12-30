@@ -1,5 +1,5 @@
 service: community-graphacademy
-
+useDotenv: true
 provider:
   name: aws
   runtime: python3.8
@@ -8,7 +8,7 @@ provider:
   stage: ${opt:stage, 'dev'}
   environment:
     DEPLOY_STAGE: ${self:provider.stage}
-    NEO4J_URL: ${env:NEO4J_URL}
+    NEO4J_HOST: ${env:NEO4J_HOST}
     NEO4J_USER: ${env:NEO4J_USER}
     NEO4J_PASS: ${env:NEO4J_PASS}
   iam:
@@ -21,7 +21,6 @@ provider:
           Resource: "arn:aws:s3:::graphacademy.neo4j.com/*"
   lambdaHashingVersion: "20201221"
   httpApi:
-    cors: true
     authorizers:
       serviceAuthorizer:
         identitySource: $request.header.Authorization
@@ -40,7 +39,7 @@ functions:
     events:
       - httpApi:
           method: POST
-          cors: true
+          
           path: /setQuizStatus
           authorizer: serviceAuthorizer
   get-quiz-status:
@@ -48,9 +47,9 @@ functions:
     handler: handler.get_quiz_status
     role: 'arn:aws:iam::715633473519:role/lambda_graphacademy'
     events:
-      - http:
+      - httpApi:
           method: GET
-          cors: true
+          
           path: /getQuizStatus
           authorizer: serviceAuthorizer
 
@@ -66,9 +65,9 @@ functions:
     handler: handler.log_training_view
     role: 'arn:aws:iam::715633473519:role/lambda_graphacademy'
     events:
-      - http:
+      - httpApi:
           method: POST
-          cors: true
+          
           path: /logTrainingView
           authorizer: serviceAuthorizer
 
@@ -77,9 +76,9 @@ functions:
     handler: handler.set_class_enrollment
     role: 'arn:aws:iam::715633473519:role/lambda_graphacademy'
     events:
-      - http:
+      - httpApi:
           method: POST
-          cors: true
+          
           path: /setClassEnrollment
           authorizer: serviceAuthorizer
 
@@ -88,9 +87,8 @@ functions:
     handler: handler.gen_class_certificate
     role: 'arn:aws:iam::715633473519:role/lambda_graphacademy'
     events:
-      - http:
+      - httpApi:
           method: POST
-          cors: true
           path: /genClassCertificate
           authorizer: serviceAuthorizer
 
@@ -100,9 +98,8 @@ functions:
     handler: handler.get_class_enrollment
     role: 'arn:aws:iam::715633473519:role/lambda_graphacademy'
     events:
-      - http:
+      - httpApi:
           method: GET
-          cors: true
           path: /getClassEnrollment
           authorizer: serviceAuthorizer
   get-print-form:
@@ -110,9 +107,8 @@ functions:
     handler: print.get_print_form
     role: 'arn:aws:iam::715633473519:role/lambda_graphacademy'
     events:
-      - http:
+      - httpApi:
           method: GET
-          cors: true
           path: /getPrintForm
           authorizer: serviceAuthorizer
 

@@ -1,9 +1,7 @@
 import os
 import logging
-
 from neo4j import GraphDatabase, basic_auth
 from retrying import retry
-
 logger = logging.getLogger()
 logger.setLevel(logging.INFO)
 
@@ -20,20 +18,19 @@ logger.setLevel(logging.INFO)
 #   boltproto = 'bolt+routing://'
 # else:
 #   boltproto = 'bolt://'
-# neo4j_url = '%s%s' % (boltproto, get_ssm_param('dbhostport'))
+# NEO4J_HOST = '%s%s' % (boltproto, get_ssm_param('dbhostport'))
 
 # neo4j_user = get_ssm_param('dbuser')
 # neo4j_password = get_ssm_param('dbpassword')
 
-# db_driver = GraphDatabase.driver(neo4j_url,  auth=basic_auth(neo4j_user, neo4j_password),
+# db_driver = GraphDatabase.driver(NEO4J_HOST,  auth=basic_auth(neo4j_user, neo4j_password),
 #   max_retry_time=15,
 #   max_connection_lifetime=60)
 
-NEO4j_URL = os.environ['NEO4J_URL']
+NEO4J_HOST = os.environ['NEO4J_HOST']
 NEO4J_USER = os.environ['NEO4J_USER']
 NEO4J_PASS = os.environ['NEO4J_PASS']
-db_driver = GraphDatabase.driver(NEO4j_URL, auth=basic_auth(NEO4j_USER, NEO4j_PASS))
-
+db_driver = GraphDatabase.driver(NEO4J_HOST, auth=basic_auth(NEO4J_USER, NEO4J_PASS))
 def set_quiz_status_db(userId, className, quizStatus): 
   session = db_driver.session()
   passed_query = """

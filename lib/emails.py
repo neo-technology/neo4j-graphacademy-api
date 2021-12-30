@@ -7,7 +7,6 @@ import boto3
 import flask
 from flask import render_template
 from botocore.vendored import requests
-from encryption import decrypt_value_str
 
 from neo4j import GraphDatabase, basic_auth
 
@@ -29,26 +28,26 @@ app = flask.Flask('myemail')
 #   boltproto = 'bolt+routing://'
 # else:
 #   boltproto = 'bolt://'
-# neo4j_url = '%s%s' % (boltproto, get_ssm_param('dbhostport'))
+# NEO4J_HOST = '%s%s' % (boltproto, get_ssm_param('dbhostport'))
 
 # neo4j_user = get_ssm_param('dbuser')
 # neo4j_password = get_ssm_param('dbpassword')
 
-# db_driver = GraphDatabase.driver(neo4j_url,  auth=basic_auth(neo4j_user, neo4j_password),
+# db_driver = GraphDatabase.driver(NEO4J_HOST,  auth=basic_auth(neo4j_user, neo4j_password),
 #   max_retry_time=15,
 #   max_connection_lifetime=60)
 
-NEO4J_URL = os.environ['NEO4J_URL']
+NEO4J_HOST = os.environ['NEO4J_HOST']
 NEO4J_USER = os.environ['NEO4J_USER']
 NEO4J_PASS = os.environ['NEO4J_PASS']
-db_driver = GraphDatabase.driver(NEO4J_URL, auth=basic_auth(NEO4J_USER, NEO4J_PASS))
+db_driver = GraphDatabase.driver(NEO4J_HOST, auth=basic_auth(NEO4J_USER, NEO4J_PASS))
 
 def mark_email_queued(auth0_key, timestamp, field):
     session = db_driver.session()
 
     # cypher query for queued
     email_queued_query = """
-MATCH (u:User {auth0_key:{auth0_key}})-[:ENROLLED_IN]-(s:StudentEnrollment {createdAt:{createdAt}, active:true})
+MATCH (u:User {auth0_key:$auth0_key})-[:ENROLLED_IN]-(s:StudentEnrollment {createdAt:$createdAt, active:true})
 CALL apoc.create.setProperty(s, {field}, 'Q')
 YIELD node
 RETURN s
@@ -61,8 +60,8 @@ def mark_email_sent(auth0_key, timestamp, field):
 
     # cypher query for queued
     email_queued_query = """
-MATCH (u:User {auth0_key:{auth0_key}})-[:ENROLLED_IN]-(s:StudentEnrollment {createdAt:{createdAt}, active:true})
-CALL apoc.create.setProperty(s, {field}, datetime())
+MATCH (u:User {auth0_key:$auth0_key})-[:ENROLLED_IN]-(s:StudentEnrollment {createdAt:$createdAt, active:true})
+CALL apoc.create.setProperty(s, $field, datetime())
 YIELD node
 RETURN s
 """

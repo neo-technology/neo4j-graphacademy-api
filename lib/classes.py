@@ -2,11 +2,10 @@ import os
 import logging
 from neo4j import GraphDatabase, basic_auth
 from retrying import retry
-
 logger = logging.getLogger()
 logger.setLevel(logging.INFO)
 
-NEO4J_URL = os.environ['NEO4J_URL']
+NEO4J_HOST = os.environ['NEO4J_HOST']
 NEO4J_USER = os.environ['NEO4J_USER']
 NEO4J_PASS = os.environ['NEO4J_PASS']
 
@@ -22,11 +21,11 @@ NEO4J_PASS = os.environ['NEO4J_PASS']
 #   boltproto = 'bolt+routing://'
 # else:
 #   boltproto = 'bolt://'
-# neo4j_url = '%s%s' % (boltproto, get_ssm_param('dbhostport'))
+# NEO4J_HOST = '%s%s' % (boltproto, get_ssm_param('dbhostport'))
 # neo4j_user = get_ssm_param('dbuser')
 # neo4j_password = get_ssm_param('dbpassword')
 
-db_driver = GraphDatabase.driver(NEO4J_URL,  auth=basic_auth(NEO4J_USER, NEO4J_PASS))
+db_driver = GraphDatabase.driver(NEO4J_HOST,  auth=basic_auth(NEO4J_USER, NEO4J_PASS))
 
 @retry(stop_max_attempt_number=5, wait_fixed=(1 * 1000))
 def get_class_enrollment_db(userId, className): 
