@@ -3,7 +3,7 @@ useDotenv: true
 provider:
   name: aws
   runtime: python3.8
-  timeout: 30
+  timeout: 29
   memorySize: 2048
   stage: ${opt:stage, 'dev'}
   environment:
@@ -21,69 +21,64 @@ provider:
           Resource: "arn:aws:s3:::graphacademy.neo4j.com/*"
   lambdaHashingVersion: "20201221"
   httpApi:
+    cors:
+      origins:
+        - "*"
     authorizers:
       serviceAuthorizer:
         identitySource: $request.header.Authorization
         issuerUrl: ${env:AUTH0_DOMAIN}
         audience:
           - ${env:AUTH0_AUDIENCE}
+          - neo4j://accountinfo/
+          - https://neo4j-sync.auth0.com/userinfo
 plugins:
   - serverless-python-requirements
   - serverless-offline
 
 functions:
   set-quiz-status:
-    name: ${self:provider.stage}-GraphAcademySetQuizStatus
     handler: handler.set_quiz_status
     role: 'arn:aws:iam::715633473519:role/lambda_graphacademy'
     events:
       - httpApi:
           method: POST
-          
           path: /setQuizStatus
           authorizer: serviceAuthorizer
   get-quiz-status:
-    name: ${self:provider.stage}-GraphAcademyGetQuizStatus
     handler: handler.get_quiz_status
     role: 'arn:aws:iam::715633473519:role/lambda_graphacademy'
     events:
       - httpApi:
           method: GET
-          
           path: /getQuizStatus
           authorizer: serviceAuthorizer
 
   send-emails:
-    name: ${self:provider.stage}-GraphAcademySendEmails
     handler: handler.send_emails
     role: 'arn:aws:iam::715633473519:role/lambda_graphacademy'
     events:
      - schedule: rate(1 minute)
 
   log-training-view:
-    name: ${self:provider.stage}-GraphAcademyLogTrainingView
     handler: handler.log_training_view
     role: 'arn:aws:iam::715633473519:role/lambda_graphacademy'
     events:
       - httpApi:
           method: POST
-          
           path: /logTrainingView
           authorizer: serviceAuthorizer
 
   set-class-enrollment:
-    name: ${self:provider.stage}-GraphAcademySetClassEnrollment
     handler: handler.set_class_enrollment
     role: 'arn:aws:iam::715633473519:role/lambda_graphacademy'
     events:
       - httpApi:
           method: POST
-          
           path: /setClassEnrollment
           authorizer: serviceAuthorizer
 
   gen-class-certificate:
-    name: ${self:provider.stage}-GraphAcademyGenClassCertificate
     handler: handler.gen_class_certificate
     role: 'arn:aws:iam::715633473519:role/lambda_graphacademy'
     events:
@@ -94,7 +89,6 @@ functions:
 
 
   get-class-enrollment:
-    name: ${self:provider.stage}-GraphAcademyGetClassEnrollment
     handler: handler.get_class_enrollment
     role: 'arn:aws:iam::715633473519:role/lambda_graphacademy'
     events:
@@ -103,7 +97,6 @@ functions:
           path: /getClassEnrollment
           authorizer: serviceAuthorizer
   get-print-form:
-    name: ${self:provider.stage}-GetPrintForm
     handler: print.get_print_form
     role: 'arn:aws:iam::715633473519:role/lambda_graphacademy'
     events:

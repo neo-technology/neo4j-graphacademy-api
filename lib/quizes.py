@@ -34,13 +34,13 @@ db_driver = GraphDatabase.driver(NEO4J_HOST, auth=basic_auth(NEO4J_USER, NEO4J_P
 def set_quiz_status_db(userId, className, quizStatus): 
   session = db_driver.session()
   passed_query = """
-    MERGE (u:User {auth0_key:{auth0_key}})
+    MERGE (u:User {auth0_key:$auth0_key})
     ON CREATE SET u.createdAt=timestamp()
-    MERGE (c:TrainingClass {name:{class_name}})
+    MERGE (c:TrainingClass {name:$class_name})
     MERGE (u)-[:ENROLLED_IN]->(se:StudentEnrollment {active:true})-[:IN_CLASS]->(c)
     ON CREATE SET se.createdAt=timestamp(), se.enrolled_date=datetime()
     WITH c, se
-    MATCH (c)-[:REQUIRES]->(q:Quiz {name:{passed_quiz}})
+    MATCH (c)-[:REQUIRES]->(q:Quiz {name:$passed_quiz})
     MERGE (se)-[pp:PASSED]->(q)
     ON CREATE SET pp.passed_date=datetime()
     WITH se, q
@@ -52,13 +52,13 @@ def set_quiz_status_db(userId, className, quizStatus):
     passed_results.consume()
 
   failed_query = """
-    MERGE (u:User {auth0_key:{auth0_key}})
+    MERGE (u:User {auth0_key:$auth0_key})
     ON CREATE SET u.createdAt=timestamp()
-    MERGE (c:TrainingClass {name:{class_name}})
+    MERGE (c:TrainingClass {name:$class_name})
     MERGE (u)-[:ENROLLED_IN]->(se:StudentEnrollment {active:true})-[:IN_CLASS]->(c)
     ON CREATE SET se.createdAt=timestamp(), se.enrolled_date=datetime()
     WITH c, se
-    MATCH (c)-[:REQUIRES]->(q:Quiz {name:{failed_quiz}})
+    MATCH (c)-[:REQUIRES]->(q:Quiz {name:$failed_quiz})
     WHERE NOT EXISTS( (se)-[:PASSED]->(q) )
     MERGE (se)-[:FAILED]->(q)
     """
@@ -72,7 +72,7 @@ def get_quiz_status_db(userId, className):
   resultDict = {}
 
   passed_query = """
-    MATCH (u:User {auth0_key:{auth0_key}})-[:ENROLLED_IN]-(se:StudentEnrollment {active:true})-[:IN_CLASS]->(c:TrainingClass {name:{class_name}}),
+    MATCH (u:User {auth0_key:$auth0_key})-[:ENROLLED_IN]-(se:StudentEnrollment {active:true})-[:IN_CLASS]->(c:TrainingClass {name:$class_name}),
           (se)-[p:PASSED]->(q:Quiz)
     RETURN q.name AS name
     """
@@ -83,7 +83,7 @@ def get_quiz_status_db(userId, className):
     resultDict['passed'].append(record['name'])
 
   failed_query = """
-    MATCH (u:User {auth0_key:{auth0_key}})-[:ENROLLED_IN]-(se:StudentEnrollment {active:true})-[:IN_CLASS]->(c:TrainingClass {name:{class_name}}),
+    MATCH (u:User {auth0_key:$auth0_key})-[:ENROLLED_IN]-(se:StudentEnrollment {active:true})-[:IN_CLASS]->(c:TrainingClass {name:$class_name}),
           (se)-[p:FAILED]->(q:Quiz)
     RETURN q.name AS name
     """
@@ -94,7 +94,7 @@ def get_quiz_status_db(userId, className):
     resultDict['failed'].append(record['name'])
 
   untried_query = """
-    MATCH (u:User {auth0_key:{auth0_key}})-[:ENROLLED_IN]-(se:StudentEnrollment {active:true})-[:IN_CLASS]->(c:TrainingClass {name:{class_name}}), (c)-[:REQUIRES]->(q:Quiz)
+    MATCH (u:User {auth0_key:$auth0_key})-[:ENROLLED_IN]-(se:StudentEnrollment {active:true})-[:IN_CLASS]->(c:TrainingClass {name:$class_name}), (c)-[:REQUIRES]->(q:Quiz)
 WHERE 
     NOT EXISTS
           ( (se)-[:FAILED]->(q) )

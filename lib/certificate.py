@@ -3,10 +3,9 @@ import hashlib
 import boto3
 import flask
 from flask import render_template
-from botocore.vendored import requests
 
+import requests
 from lib.wkhtmltopdf import wkhtmltopdf
-
 app = flask.Flask('my app')
 
 BUCKET_NAME = "graphacademy.neo4j.com"
